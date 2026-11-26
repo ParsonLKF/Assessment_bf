@@ -83,3 +83,31 @@ npm run build-storybook
 
 See the [verification checklist](tasks.md#verification-and-known-gaps) for the
 checks run and any remaining gaps.
+
+## Future work
+
+1. **Limit generated response size.** Estimate the encoded JSON response size
+   before building the list, including the URL count, sticky session suffixes,
+   and JSON overhead. Return `400 invalid_parameter` if it exceeds a fixed
+   budget, such as 1 MiB, and ask the user to reduce **Quantity**. Test both
+   sides of the limit. The frontend should also handle HTTP `413 Payload Too
+   Large` from the server or reverse proxy, even when the body is HTML or
+   empty. Preserve the draft and ask the user to shorten their inputs before
+   submitting again.
+2. **Reject redirects on authenticated Byteful requests.** Set
+   `redirect: 'error'` on the server-side request so the API keys stay on the
+   configured Byteful origin. Report rejected redirects as `502 upstream_failure`.
+3. **Honor `Retry-After` on rate-limited lookups.** Parse delay seconds and HTTP
+   dates from the forwarded header. Delay both automatic and manual retries
+   until the wait expires. Use the existing backoff if the header is missing
+   or invalid.
+4. **Retry the page that failed.** Call `fetchNextPage()` after a pagination
+   error and keep earlier pages visible. Use `refetch()` for initial lookup
+   failures.
+5. **Validate Unicode before URL encoding.** Reject unpaired UTF-16 surrogates
+   in usernames, passwords, and city aliases in the shared validator. Return
+   `400 invalid_parameter` and accept well-formed Unicode, including emoji.
+6. **Verify retry recovery in Storybook.** Click **Retry** in the lookup story
+   and check that country options appear. Click **Create access** again in the
+   generation story and check that a result appears. Keep the lookup mock
+   failing through automatic retries so the story exercises manual recovery.
