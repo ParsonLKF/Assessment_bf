@@ -58,6 +58,9 @@ Errors use `{ error, message }`.
 
 ## Assumptions
 
+- The lookup API allows up to 80 characters after trimming the search term.
+  This project limit keeps forwarded search terms short. The assessment does
+  not specify a search length limit. Omit `q` to browse without a search term.
 - The default list is 100 HTTP proxies with sticky sessions. Count must be an
   integer from 1 to 1,000.
 - We assume proxy strings are intended to be copied as single tokens without
@@ -111,3 +114,10 @@ See [Future work](#future-work) for the remaining gaps.
    and check that country options appear. Click **Create access** again in the
    generation story and check that a result appears. Keep the lookup mock
    failing through automatic retries so the story exercises manual recovery.
+7. **Add linting and a pre-commit check.** Configure linting for the Next.js
+   and TypeScript code and expose it through `npm run lint`. Run the linter
+   on staged files before each commit and use the same rules in CI.
+8. **Save generator history in the browser.** Restore recent list names,
+   targeting settings, counts, and creation times after a reload. Provide a
+   way to clear saved history. Store only metadata because full proxy URLs
+   contain credentials.

@@ -16,6 +16,7 @@ The Next.js App Router serves a client-side React console and four local API end
 | `src/components/generator/use-targeting-lookups.ts` and `src/components/query-provider.tsx` | Fetch and cache lookup pages, debounce search, cancel obsolete requests, and handle retry. |
 | `src/components/ui/` | Reusable Card, Step Progress, Field, Text Field, Password Toggle, and ComboBox. Country, City, and ASN are searchable. Protocol and Rotation use native dropdowns. |
 | `src/lib/api-client.ts` | Sends generation requests to the local API and preserves the HTTP status and error message on failure. |
+| `src/lib/constants.ts` | Holds shared lookup settings and proxy gateway and session ID constants. |
 | `src/lib/list-rules.ts`, `validators.ts`, `country-codes.ts`, and `api-errors.ts` | Hold shared defaults and options, input and ISO country validation, and the error catalog. |
 | `src/lib/proxy-builder.ts` and `src/lib/byteful-api-client.ts` | Generate proxy URLs locally and fetch live lookups with server-side Byteful credentials, respectively. |
 | `src/lib/lookup-fixtures.ts` and `tests/` | Provide Storybook lookup fixtures and backend checks that use mock upstream responses. |

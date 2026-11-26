@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { comboBoxPaginationThresholdPx } from '@/lib/constants';
 import { Field, type ControlProps } from './field';
 import { Icon } from './icon';
 
@@ -71,7 +72,7 @@ function SearchBox<Value extends string>({ control, label, options, value, onCha
 
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) onLoadMore();
-    }, { root, rootMargin: '0px 0px 64px 0px' });
+    }, { root, rootMargin: `0px 0px ${comboBoxPaginationThresholdPx}px 0px` });
     observer.observe(row);
     return () => observer.disconnect();
   }, [visible, hasMore, loading, loadingMore, lookupError, onLoadMore]);

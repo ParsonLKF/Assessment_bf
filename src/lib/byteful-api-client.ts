@@ -1,10 +1,8 @@
 import 'server-only';
-import { apiErrorResponse, apiErrorResponseWithHeaders, type ApiErrorCode } from '@/lib/api-errors';
+import { apiErrorMessage, apiErrorResponse, apiErrorResponseWithHeaders, type ApiErrorCode } from '@/lib/api-errors';
+import { bytefulApiBaseUrl, bytefulLookupPageSize } from '@/lib/constants';
 import type { Asn, City, Country } from '@/lib/targeting';
-import { apiErrorMessage } from '@/lib/api-errors';
 
-const baseUrl = 'https://api.byteful.com/1.0/public/user';
-const pageSize = 100;
 type Resource = 'country' | 'city' | 'asn';
 type UnknownRecord = Record<string, unknown>;
 type SearchOptions = { countryId?: string; query?: string; page?: number };
@@ -64,9 +62,9 @@ function normalizeRecord(resource: Resource, input: unknown, requestedCountry?: 
 }
 
 export function buildBytefulSearchUrl(resource: Resource, options: SearchOptions = {}) {
-  const url = new URL(`${baseUrl}/${resource}/search`);
+  const url = new URL(`${bytefulApiBaseUrl}/${resource}/search`);
   url.searchParams.set('page', String(options.page ?? 1));
-  url.searchParams.set('per_page', String(pageSize));
+  url.searchParams.set('per_page', String(bytefulLookupPageSize));
   if (resource === 'country') {
     if (options.query) url.searchParams.set('like_country_name', `%${options.query}%`);
   } else if (resource === 'city') {
@@ -130,7 +128,7 @@ export async function searchByteful(resource: Resource, options: SearchOptions =
   if (!Array.isArray(payload.data)) throw new BytefulError(502, apiErrorMessage.lookup.unexpectedBytefulResponse);
 
   const page = positiveInteger(payload.page, options.page ?? 1);
-  const perPage = positiveInteger(payload.per_page, pageSize);
+  const perPage = positiveInteger(payload.per_page, bytefulLookupPageSize);
   const totalCount = Number(payload.total_count);
   const totalPages = Number.isSafeInteger(totalCount) && totalCount >= 0 ? Math.ceil(totalCount / perPage) : null;
   const lastPage = payload.data.length < perPage || (totalPages !== null && page >= totalPages);

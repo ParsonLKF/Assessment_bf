@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { lookupRetryLimit, lookupSearchDebounceMs } from '@/lib/constants';
 import { ApiError } from '@/lib/api-client';
 import { apiErrorMessage } from '@/lib/api-errors';
 import { isAssignedCountryCode } from '@/lib/country-codes';
@@ -63,7 +64,7 @@ function useTargetingLookup<T>(resource: string, country: string | undefined, qu
       setDebouncedSearch('');
       return;
     }
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    const timer = setTimeout(() => setDebouncedSearch(search), lookupSearchDebounceMs);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -75,7 +76,7 @@ function useTargetingLookup<T>(resource: string, country: string | undefined, qu
     queryFn: ({ pageParam, signal }) => loadLookup<T>(lookupPath(resource, country, term, pageParam), signal),
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: enabled && !waiting,
-    retry: (failureCount, error) => safeRetry(error) && failureCount < 2,
+    retry: (failureCount, error) => safeRetry(error) && failureCount < lookupRetryLimit,
   });
 
   return {

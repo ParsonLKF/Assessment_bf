@@ -1,3 +1,5 @@
+import { maxLookupSearchLength } from './constants';
+
 export const apiErrorMessage = {
   request: {
     invalidJson: 'Send a valid JSON request body.',
@@ -5,7 +7,7 @@ export const apiErrorMessage = {
     invalidSettings: 'Check the list settings.',
     invalidCountry: 'Use a lowercase two-letter country code.',
     countryRequired: 'Choose a country before searching for cities.',
-    invalidSearch: 'Search text must be from 1 to 80 characters.',
+    invalidSearch: `Search text must be from 1 to ${maxLookupSearchLength} characters.`,
     invalidPage: 'Page must be a positive integer.',
     unknownLookup: 'This lookup does not exist.',
   },
