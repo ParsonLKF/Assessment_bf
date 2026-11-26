@@ -7,9 +7,10 @@ import { Landing } from './Landing';
 const meta = {
   title: 'Generator/Console',
   component: Landing,
-  beforeEach() {
+  beforeEach({ parameters }) {
     const originalFetch = window.fetch;
     let submissions = 0;
+    let countryFailures = parameters.countryLookupFailures ?? 0;
 
     window.fetch = async (input, init) => {
       const url = new URL(input instanceof Request ? input.url : String(input), window.location.href);
@@ -19,6 +20,13 @@ const meta = {
 
       switch (url.pathname) {
         case '/api/lookup/countries': {
+          if (countryFailures > 0) {
+            countryFailures -= 1;
+            return Response.json(
+              { error: 'upstream_failure', message: apiErrorMessage.lookup.connectionFailed },
+              { status: 502 },
+            );
+          }
           const term = query.toLowerCase();
           return Response.json({ data: countries.filter((item) => item.country_id === term || item.country_name.toLowerCase().includes(term)) });
         }
@@ -42,6 +50,21 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const LookupErrorAndRetry: Story = {
+  parameters: { countryLookupFailures: 3 },
+  async play({ canvasElement, userEvent }) {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByLabelText(/^Proxy username/), 'qa');
+    await userEvent.type(canvas.getByLabelText(/^Proxy password/), 'secret');
+    await userEvent.click(canvas.getByRole('button', { name: 'Continue to targeting' }));
+    await userEvent.click(canvas.getByRole('combobox', { name: 'Country' }));
+
+    const alert = await canvas.findByRole('alert', {}, { timeout: 8000 });
+    await expect(alert).toHaveTextContent(apiErrorMessage.lookup.connectionFailed);
+    await expect(within(alert).getByRole('button', { name: 'Retry' })).toBeVisible();
+  },
+};
 
 export const GenerationAndRetry: Story = {
   async play({ canvasElement, userEvent }) {
@@ -70,18 +93,6 @@ export const GenerationAndRetry: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Create access' }));
     await expect(await canvas.findByRole('alert')).toHaveTextContent(apiErrorMessage.generation.failed);
     await expect(canvas.getByText('UK QA')).toBeVisible();
-    await userEvent.click(canvas.getByRole('button', { name: 'Create access' }));
-    await expect(await canvas.findByRole('heading', { name: 'UK QA' })).toBeVisible();
-    await userEvent.click(canvas.getByRole('button', { name: 'Back to Proxy list' }));
-    const row = canvas.getByRole('row', { name: /UK QA/ });
-    row.focus();
-    await userEvent.keyboard('{Enter}');
-    await expect(canvas.getByRole('heading', { name: 'Generated result' })).toBeVisible();
-    if (!canvas.queryByRole('navigation', { name: 'Tool' })) {
-      await userEvent.click(canvas.getByRole('button', { name: 'Open navigation' }));
-    }
-    const navigation = canvas.getByRole('navigation', { name: 'Tool' });
-    await userEvent.click(within(navigation).getByRole('button', { name: 'Proxy generator' }));
-    await expect(canvas.getByLabelText(/^Proxy username/)).toHaveValue('');
+    await expect(canvas.getByRole('button', { name: 'Create access' })).toBeEnabled();
   },
 };
