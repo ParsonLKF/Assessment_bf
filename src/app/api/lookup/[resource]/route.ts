@@ -6,7 +6,7 @@ type ResourceName = keyof typeof lookupResources;
 
 export async function GET(request: Request, context: { params: Promise<{ resource: string }> }) {
   const { resource } = await context.params;
-  if (!(resource in lookupResources)) return apiErrorResponse('not_found', apiErrorMessage.request.unknownLookup);
+  if (!Object.hasOwn(lookupResources, resource)) return apiErrorResponse('not_found', apiErrorMessage.request.unknownLookup);
   const name = resource as ResourceName;
   const params = new URL(request.url).searchParams;
   const countryId = params.get('country_id')?.trim().toLowerCase();

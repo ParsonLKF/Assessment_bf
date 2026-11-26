@@ -25,10 +25,10 @@
 
 ## Verification and known gaps
 
-- [ ] Check input defaults, count limits, whitespace in credentials, combined targeting, and expected HTTP status and error bodies.
-- [ ] Check lookup loading, empty results, pagination, missing keys, upstream 429, retry, and stale responses after changing country or query.
+- [x] Check input defaults, count limits, whitespace in credentials, combined targeting, and expected HTTP status and error bodies. Verified unique sticky sessions, identical rotating lines, and percent-encoded credentials.
+- [x] Check lookup loading, empty results, pagination, missing keys, upstream 429, retry, and stale responses after changing country or query. Verified live pagination and empty results, simulated the upstream errors, and exercised automatic pagination, debounce, and retry in a mobile browser.
 - [x] Exercise both `ComboBox` modes, the generator, history, and results with keyboard and mobile input. Verify copy, download, and draft recovery.
 - [x] Recheck the generator Storybook import issue. The story imports `Landing` directly, builds, and runs through generation and retry in the browser.
-- [x] Run `npm run typecheck` and `npm run build`. Keep Storybook and automated tests runnable without keys.
-- [ ] With local keys configured, smoke-test all three live lookups and generation. Verify the browser calls only local routes and both keys stay out of client assets, responses, and logs.
-- [ ] Finish the README with setup, assumptions, and error codes. Record the assessment walkthrough video.
+- [x] Run `npm test`, `npm run typecheck`, `npm run build`, and `npm run build-storybook`. All 11 backend tests pass without keys, and Storybook builds with local fixtures.
+- [x] With local keys configured, smoke-test all three live lookups and generation. Verified only local API calls in the browser and checked both keys against client assets, browser responses, and lookup diagnostics.
+- [x] Finish the README with setup, assumptions, and error codes.
