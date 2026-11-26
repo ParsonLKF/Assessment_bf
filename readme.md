@@ -1,7 +1,9 @@
 # Byteful Proxy Generator
 
-The workspace includes a Next.js App Router scaffold and a Storybook catalog.
-The [implementation checklist](tasks.md) tracks the generator and API work.
+The console can generate and download proxy lists, with country, city, and ASN
+lookup fixtures for local development. Storybook covers the generator flow and
+the searchable and dropdown controls. The [implementation checklist](tasks.md)
+tracks the live Byteful integration.
 
 ## Local development
 
@@ -17,7 +19,7 @@ and open the catalog at [localhost:6006](http://localhost:6006).
 
 ## Byteful API keys
 
-The app scaffold and Storybook run without keys. For live lookup development,
+The fixture-backed app and Storybook run without keys. For live lookup development,
 create a key pair in the Byteful dashboard, copy `.env.example` to `.env.local`
 at the project root, and fill in `BYTEFUL_PUBLIC_KEY` and `BYTEFUL_PRIVATE_KEY`.
 The local file is ignored by Git.

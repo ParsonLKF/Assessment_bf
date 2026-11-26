@@ -1,6 +1,6 @@
 # Technical Architecture and System Design
 
-The Next.js App Router serves a client-side React console and four local API routes. The browser calls only the app's API. The console and its styles follow the supplied [design prototype](../interview-takehome-full-stack/Byteful-Console-UI/index.html).
+The Next.js App Router serves a client-side React console and four local API routes. The browser calls only the app's API. The console and its styles follow the supplied [design prototype](../interview-takehome-full-stack/design/index.html).
 
 ## Source map
 
@@ -13,7 +13,7 @@ The Next.js App Router serves a client-side React console and four local API rou
 | `src/components/generator/proxy-list.tsx` and `proxy-list-table.tsx` | Render the submitted-list screen and activate a selected row. |
 | `src/components/generator/proxy-result.tsx` and `types.ts` | Render list details and manage copy/download feedback. Types describe views, steps, and generated snapshots. |
 | `src/components/generator/use-generator-draft.ts` and `use-targeting-lookups.ts` | Manage draft defaults, selections, lookup query paths, and client-side validation. |
-| `src/components/ui/` | Reusable Card, Step Progress, Field, Text Field, Password Toggle, and Select Field. |
+| `src/components/ui/` | Reusable Card, Step Progress, Field, Text Field, Password Toggle, and ComboBox. Country, City, and ASN are searchable. Protocol and Rotation use native dropdowns. |
 | `src/components/use-lookup.ts` | Stores successful lookup responses by path, debounces, cancels obsolete requests, and exposes retry. |
 | `src/lib/api-client.ts` | Fetches array results from local routes and preserves server error codes, messages, and statuses. |
 | `src/lib/list-rules.ts`, `validators.ts`, and `api-errors.ts` | Hold shared defaults and options, input and fixture-membership checks, and the error catalog. |
@@ -30,7 +30,7 @@ The Next.js App Router serves a client-side React console and four local API rou
 
 ## Requests and validation
 
-Country and ASN data are fetched through `useLookup`. City search uses a 300ms debounce when a search term is present. Changing the country clears the city selection and search, and clears an ASN that no longer belongs to the selected country. A selected city stays in the option list while a search excludes it. Each lookup cache is keyed by full request path and lasts for the mounted console. Successful responses are cached. Obsolete requests are aborted. Retry is manual.
+Targeting data is fetched through `useLookup`. Country search filters the loaded catalog. City and ASN search use a 300 ms debounce when a search term is present. Changing the country clears the city selection and search, and clears an ASN that no longer belongs to the selected country. A selected option stays visible while a search excludes it. Each lookup cache is keyed by full request path and lasts for the mounted console. Successful responses are cached. Obsolete requests are aborted. Retry is manual.
 
 The browser and generation route use the same validator. The browser supplies its selected city and ASN records. The route supplies the full fixture catalogs. The route catches malformed JSON separately and returns the structured generation failure for an exception during URL assembly or success response serialization.
 

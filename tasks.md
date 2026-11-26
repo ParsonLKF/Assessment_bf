@@ -8,11 +8,11 @@
 
 ## Reusable UI
 
-- [ ] Build `Card`, `Field`, `TextField`, `PasswordToggle`, `ComboBox`, and `StepProgress`.
-- [ ] Use `ComboBox type="searchable"` for Country, City, and ASN. Use `type="dropdown"` for Protocol and Rotation. Keep search text separate from the selected value.
-- [ ] Build the console shell, mobile navigation, and Credentials → Targeting → Review flow. Use one settings summary and mask the password by default.
-- [ ] Build the session-only Proxy list and result details with keyboard-accessible rows, copy actions, and `.txt` download.
-- [ ] Preserve the draft after a failed submission. Reset it and add a history entry after success.
+- [x] Build `Card`, `Field`, `TextField`, `PasswordToggle`, `ComboBox`, and `StepProgress`.
+- [x] Use `ComboBox type="searchable"` for Country, City, and ASN. Use `type="dropdown"` for Protocol and Rotation. Keep search text separate from the selected value.
+- [x] Build the console shell, mobile navigation, and Credentials → Targeting → Review flow. Use one settings summary and mask the password by default.
+- [x] Build the session-only Proxy list and result details with keyboard-accessible rows, copy actions, and `.txt` download.
+- [x] Preserve the draft after a failed submission. Reset it and add a history entry after success.
 
 ## Backend and Byteful integration
 
@@ -27,8 +27,8 @@
 
 - [ ] Check input defaults, count limits, whitespace in credentials, combined targeting, and expected HTTP status and error bodies.
 - [ ] Check lookup loading, empty results, pagination, missing keys, upstream 429, retry, and stale responses after changing country or query.
-- [ ] Exercise both `ComboBox` modes, the generator, history, and results with keyboard and mobile input. Verify copy, download, and draft recovery.
-- [ ] Recheck the generator Storybook import issue mentioned in the project notes once the scaffold is available. Record whether it reproduces.
-- [ ] Run `npm run typecheck`, `npm run build`, and `npm run build-storybook`. Keep Storybook and automated tests runnable without keys.
+- [x] Exercise both `ComboBox` modes, the generator, history, and results with keyboard and mobile input. Verify copy, download, and draft recovery.
+- [x] Recheck the generator Storybook import issue. The story imports `Landing` directly, builds, and runs through generation and retry in the browser.
+- [x] Run `npm run typecheck`, `npm run build`, and `npm run build-storybook`. Keep Storybook and automated tests runnable without keys.
 - [ ] With local keys configured, smoke-test all three live lookups and generation. Verify the browser calls only local routes and both keys stay out of client assets, responses, and logs.
 - [ ] Finish the README with setup, assumptions, and error codes. Record the assessment walkthrough video.
