@@ -7,7 +7,6 @@ const baseUrl = 'https://api.byteful.com/1.0/public/user';
 const pageSize = 100;
 type Resource = 'country' | 'city' | 'asn';
 type UnknownRecord = Record<string, unknown>;
-type SearchResponse = { data: unknown[]; page: number; perPage: number; totalCount: number };
 type SearchOptions = { countryId?: string; query?: string; page?: number };
 
 export class BytefulError extends Error {
@@ -139,9 +138,8 @@ export async function searchByteful(resource: Resource, options: SearchOptions =
     data: payload.data.map((item) => normalizeRecord(resource, item, options.countryId)),
     page,
     perPage,
-    totalCount: Number.isSafeInteger(totalCount) ? totalCount : -1,
     nextPage: lastPage ? null : page + 1,
-  } satisfies SearchResponse & { nextPage: number | null };
+  };
 }
 
 export function lookupResponse(result: Awaited<ReturnType<typeof searchByteful>>) {

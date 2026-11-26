@@ -19,6 +19,7 @@ export const apiErrorMessage = {
     count: 'Enter a whole number from 1 to 1,000.',
     format: 'Choose a supported connection protocol.',
     sessionType: 'Choose a supported rotation mode.',
+    country: 'Use an assigned lowercase ISO 3166-1 country code, such as gb or us.',
     city: 'Choose a city in the selected country.',
     asn: 'Choose an available ASN for the selected country.',
   },

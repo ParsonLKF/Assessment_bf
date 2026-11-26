@@ -67,9 +67,19 @@ test('validation rejects whitespace in either credential and invalid targeting',
     assert.ok(validateListRequest({ ...credentials, proxy_user_id: value }).errors.proxy_user_id);
     assert.ok(validateListRequest({ ...credentials, proxy_user_password: value }).errors.proxy_user_password);
   }
-  assert.ok(validateListRequest({ ...credentials, country_id: 'GB' }).errors.country_id);
   assert.ok(validateListRequest({ ...credentials, city_alias: 'london' }).errors.city_alias);
   assert.ok(validateListRequest({ ...credentials, asn_id: '5089' }).errors.asn_id);
+});
+
+test('generation accepts assigned lowercase country codes or an omitted country', async () => {
+  for (const country_id of [undefined, 'gb', 'us', 'ax']) {
+    const response = await post(JSON.stringify({ ...credentials, country_id, list_count: 1 }));
+    assert.equal(response.status, 200);
+  }
+  for (const country_id of ['GB', 'uk', 'zz', null]) {
+    const response = await post(JSON.stringify({ ...credentials, country_id }));
+    await assertError(response, 400, 'invalid_parameter');
+  }
 });
 
 test('sticky proxy URLs encode credentials and have distinct 16-character sessions', () => {

@@ -59,9 +59,15 @@ Errors use `{ error, message }`.
 ## Assumptions
 
 - The default list is 100 HTTP proxies with sticky sessions. Count must be an
-  integer from 1 to 1,000. The form and API reject whitespace in credentials.
+  integer from 1 to 1,000.
+- We assume proxy strings are intended to be copied as single tokens without
+  spaces. The form and API therefore reject whitespace in usernames and
+  passwords. This is a project choice stricter than the assessment's non-empty
+  credential rule. URL encoding can represent spaces, but the generator treats
+  them as input mistakes.
 - The form limits choices to matching lookup results. The generation API checks
-  the shape of targeting values and requires a country when a city is supplied.
+  that any supplied country code is an officially assigned lowercase ISO 3166-1
+  alpha-2 code and requires a country when a city is supplied.
   It builds URLs locally, so generation does not depend on lookup availability.
 - Generated URLs do not verify proxy credentials or test proxy connectivity.
   The console keeps generated lists in memory until the page is reloaded.

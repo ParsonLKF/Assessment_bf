@@ -1,10 +1,8 @@
 import type { ListRequest } from './list-rules';
 import { apiErrorMessage } from './api-errors';
 
-type ApiFailure = { error?: unknown; message?: unknown };
-
 export class ApiError extends Error {
-  constructor(message: string, readonly status?: number, readonly code?: string) {
+  constructor(message: string, readonly status?: number) {
     super(message);
     this.name = 'ApiError';
   }
@@ -19,12 +17,11 @@ export async function fetchData<T>(path: string, init?: RequestInit): Promise<re
     throw new ApiError(apiErrorMessage.network.unavailable);
   }
 
-  const body = await response.json().catch(() => null) as (ApiFailure & { data?: unknown }) | null;
+  const body = await response.json().catch(() => null) as { data?: unknown; message?: unknown } | null;
   if (!response.ok) {
     throw new ApiError(
       typeof body?.message === 'string' ? body.message : apiErrorMessage.network.failed,
       response.status,
-      typeof body?.error === 'string' ? body.error : undefined,
     );
   }
   if (!Array.isArray(body?.data)) throw new ApiError(apiErrorMessage.network.unexpectedResponse, response.status);

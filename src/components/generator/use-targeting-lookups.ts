@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api-client';
 import { apiErrorMessage } from '@/lib/api-errors';
+import { isAssignedCountryCode } from '@/lib/country-codes';
 import type { Asn, City, Country } from '@/lib/targeting';
 import type { GeneratorDraft } from './use-generator-draft';
 
@@ -22,19 +23,18 @@ async function loadLookup<T>(path: string, signal: AbortSignal) {
     if (signal.aborted) throw error;
     throw new ApiError(apiErrorMessage.network.unavailable);
   }
-  const body = await response.json().catch(() => null) as { data?: unknown; error?: unknown; message?: unknown } | null;
-  if (!response.ok) throw new ApiError(typeof body?.message === 'string' ? body.message : apiErrorMessage.network.lookupFailed, response.status, typeof body?.error === 'string' ? body.error : undefined);
+  const body = await response.json().catch(() => null) as { data?: unknown; message?: unknown } | null;
+  if (!response.ok) {
+    throw new ApiError(
+      typeof body?.message === 'string' ? body.message : apiErrorMessage.network.lookupFailed,
+      response.status,
+    );
+  }
   if (!Array.isArray(body?.data)) throw new ApiError(apiErrorMessage.network.unexpectedResponse, response.status);
   return {
     data: body.data as T[],
     nextPage: response.headers.get('X-Next-Page') ? Number(response.headers.get('X-Next-Page')) : undefined,
   };
-}
-
-function displayError(error: Error | null) {
-  return error instanceof ApiError && error.status !== undefined && error.status < 500 && error.status !== 429
-    ? error.message
-    : error?.message;
 }
 
 function flattenPages<T>(pages: readonly { data: readonly T[] }[] | undefined) {
@@ -81,7 +81,7 @@ function useTargetingLookup<T>(resource: string, country: string | undefined, qu
   return {
     data: waiting ? [] : flattenPages(lookup.data?.pages),
     loading: enabled && (waiting || lookup.isPending),
-    error: waiting ? undefined : displayError(lookup.error),
+    error: waiting ? undefined : lookup.error?.message,
     retry: retryButton(lookup.refetch),
     hasMore: enabled && !waiting && lookup.hasNextPage,
     loadMore: () => {
@@ -104,7 +104,11 @@ export function useTargetingLookups(enabled: boolean, { draft, selectCountry, up
   const cities = useTargetingLookup<City>('cities', country, cityQuery, enabled && Boolean(country));
   const asns = useTargetingLookup<Asn>('asns', country, asnQuery, enabled);
 
-  const countryOptions = withSelected(countries.data, draft.country, 'country_id');
+  const countryOptions = withSelected(
+    countries.data.filter((item) => isAssignedCountryCode(item.country_id)),
+    draft.country,
+    'country_id',
+  );
   const cityOptions = withSelected(cities.data, draft.city, 'city_alias');
   const asnOptions = withSelected(asns.data, draft.asn, 'asn_id');
 

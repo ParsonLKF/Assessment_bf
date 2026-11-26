@@ -20,7 +20,7 @@
 - [x] Implement the three live lookup routes. Preserve the `{ data }` response body and expose pagination through `X-Current-Page`, `X-Per-Page`, and `X-Next-Page` headers.
 - [x] Scope city lookups by country with `like_subdivision_id=gb%25` and support ASN search with or without a country. Use debounced API search, TanStack Query caching and cancellation, automatic pagination on scroll, and manual retry for Country, City, and ASN.
 - [x] Implement `POST /api/residential/list` with shared defaults and validation, percent-encoded credentials, unique sticky session IDs, identical rotating lines, and `Cache-Control: no-store`.
-- [x] Accept live targeting values without fixture dependencies. The client validates selected City and ASN membership against selected lookup results. The generation route validates their structure and remains independent of upstream requests.
+- [x] Accept live targeting values without fixture dependencies. The client scopes City and ASN choices to the selected country. The shared validator checks the request fields, and generation remains independent of upstream requests.
 - [x] Return consistent `{ error, message }` responses for invalid input, missing keys, upstream errors, rate limits, and generation failures.
 
 ## Verification and known gaps

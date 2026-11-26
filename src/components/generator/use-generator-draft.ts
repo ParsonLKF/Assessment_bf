@@ -49,7 +49,7 @@ export function useGeneratorDraft() {
       country_id: draft.country?.country_id,
       city_alias: draft.city?.city_alias,
       asn_id: draft.asn?.asn_id,
-    }, { cities: draft.city ? [draft.city] : [], asns: draft.asn ? [draft.asn] : [] });
+    });
   }
 
   function continueStep() {

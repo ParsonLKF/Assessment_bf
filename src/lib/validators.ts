@@ -1,9 +1,8 @@
 import { formats, listRules, sessionTypes, type ListRequest } from './list-rules';
-import type { Asn, City } from './targeting';
 import { apiErrorMessage } from './api-errors';
+import { isAssignedCountryCode } from './country-codes';
 
 export type ListErrors = Partial<Record<keyof ListRequest, string>>;
-type Catalog = { cities?: readonly City[]; asns?: readonly Asn[]; verifyMembership?: boolean };
 
 export function validateCredentials(username: unknown, password: unknown): ListErrors {
   const errors: ListErrors = {};
@@ -26,7 +25,7 @@ function validateCount(count: unknown) {
   }
 }
 
-export function validateListRequest(input: unknown, catalog: Catalog = {}):
+export function validateListRequest(input: unknown):
   | { ok: true; value: ListRequest }
   | { ok: false; errors: ListErrors } {
   const fields: Record<string, unknown> = input && typeof input === 'object' && !Array.isArray(input)
@@ -45,15 +44,13 @@ export function validateListRequest(input: unknown, catalog: Catalog = {}):
   const sessionType = sessionTypes.find((option) => option === list_session_type);
   if (!format) errors.list_format = apiErrorMessage.validation.format;
   if (!sessionType) errors.list_session_type = apiErrorMessage.validation.sessionType;
-  if (country_id !== undefined && (typeof country_id !== 'string' || !/^[a-z]{2}$/.test(country_id))) {
-    errors.country_id = apiErrorMessage.request.invalidCountry;
+  if (country_id !== undefined && !isAssignedCountryCode(country_id)) {
+    errors.country_id = apiErrorMessage.validation.country;
   }
-  if (city_alias !== undefined && (typeof city_alias !== 'string' || !city_alias.trim() || !country_id ||
-      (catalog.verifyMembership && !catalog.cities?.some((city) => city.city_alias === city_alias && city.country_id === country_id)))) {
+  if (city_alias !== undefined && (typeof city_alias !== 'string' || !city_alias.trim() || !country_id)) {
     errors.city_alias = apiErrorMessage.validation.city;
   }
-  if (asn_id !== undefined && (!Number.isSafeInteger(asn_id) || (catalog.verifyMembership && !catalog.asns?.some((asn) =>
-    asn.asn_id === asn_id && (country_id === undefined || asn.country_id === country_id))))) {
+  if (asn_id !== undefined && !Number.isSafeInteger(asn_id)) {
     errors.asn_id = apiErrorMessage.validation.asn;
   }
   if (Object.keys(errors).length || !format || !sessionType) return { ok: false, errors };
