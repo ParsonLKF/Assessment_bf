@@ -18,8 +18,10 @@ const meta = {
       const query = url.searchParams.get('q') ?? '';
 
       switch (url.pathname) {
-        case '/api/lookup/countries':
-          return Response.json({ data: countries });
+        case '/api/lookup/countries': {
+          const term = query.toLowerCase();
+          return Response.json({ data: countries.filter((item) => item.country_id === term || item.country_name.toLowerCase().includes(term)) });
+        }
         case '/api/lookup/cities':
           return Response.json({ data: fixtureCities(country, query) });
         case '/api/lookup/asns':
