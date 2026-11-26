@@ -2,9 +2,9 @@
 
 ## Project setup
 
-- [ ] Scaffold the TypeScript Next.js App Router app and Storybook. Commit the npm lockfile.
-- [ ] Add the dev, typecheck, build, Storybook, and Storybook build scripts.
-- [ ] Add a blank `.env.example` with `BYTEFUL_PUBLIC_KEY` and `BYTEFUL_PRIVATE_KEY`. Ignore `.env.local` and document local and deployed key setup.
+- [x] Scaffold the TypeScript Next.js App Router app and Storybook. Commit the npm lockfile.
+- [x] Add the dev, typecheck, build, Storybook, and Storybook build scripts.
+- [x] Add a blank `.env.example` with `BYTEFUL_PUBLIC_KEY` and `BYTEFUL_PRIVATE_KEY`. Ignore `.env.local` and document local and deployed key setup.
 
 ## Reusable UI
 
