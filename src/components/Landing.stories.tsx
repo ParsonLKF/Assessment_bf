@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, within } from 'storybook/test';
 import { countries, fixtureAsns, fixtureCities } from '@/lib/lookup-fixtures';
+import { apiErrorMessage } from '@/lib/api-errors';
 import { Landing } from './Landing';
 
 const meta = {
@@ -24,7 +25,7 @@ const meta = {
         case '/api/lookup/asns':
           return Response.json({ data: fixtureAsns(country, query) });
         case '/api/residential/list':
-          if (++submissions === 1) return Response.json({ error: 'internal_server_error', message: 'Could not generate the proxy list. Try again.' }, { status: 500 });
+          if (++submissions === 1) return Response.json({ error: 'internal_server_error', message: apiErrorMessage.generation.failed }, { status: 500 });
           return Response.json({ data: ['https://demo:password@proxy.example.test:8000'] });
         default:
           return originalFetch(input, init);
@@ -65,7 +66,7 @@ export const GenerationAndRetry: Story = {
     await expect(canvas.getByText('London')).toBeVisible();
     await expect(canvas.queryByText('secret')).toBeNull();
     await userEvent.click(canvas.getByRole('button', { name: 'Create access' }));
-    await expect(await canvas.findByRole('alert')).toHaveTextContent('Could not generate the proxy list.');
+    await expect(await canvas.findByRole('alert')).toHaveTextContent(apiErrorMessage.generation.failed);
     await expect(canvas.getByText('UK QA')).toBeVisible();
     await userEvent.click(canvas.getByRole('button', { name: 'Create access' }));
     await expect(await canvas.findByRole('heading', { name: 'UK QA' })).toBeVisible();

@@ -1,4 +1,5 @@
 import type { ListRequest } from './list-rules';
+import { apiErrorMessage } from './api-errors';
 
 type ApiFailure = { error?: unknown; message?: unknown };
 
@@ -15,18 +16,18 @@ export async function fetchData<T>(path: string, init?: RequestInit): Promise<re
     response = await fetch(path, init);
   } catch (error) {
     if (init?.signal?.aborted) throw error;
-    throw new ApiError('Could not reach the server. Check your connection and try again.');
+    throw new ApiError(apiErrorMessage.network.unavailable);
   }
 
   const body = await response.json().catch(() => null) as (ApiFailure & { data?: unknown }) | null;
   if (!response.ok) {
     throw new ApiError(
-      typeof body?.message === 'string' ? body.message : 'The request failed. Try again.',
+      typeof body?.message === 'string' ? body.message : apiErrorMessage.network.failed,
       response.status,
       typeof body?.error === 'string' ? body.error : undefined,
     );
   }
-  if (!Array.isArray(body?.data)) throw new ApiError('The server returned an unexpected response.', response.status);
+  if (!Array.isArray(body?.data)) throw new ApiError(apiErrorMessage.network.unexpectedResponse, response.status);
   return body.data as T[];
 }
 
@@ -37,7 +38,7 @@ export async function generateList(request: ListRequest) {
     body: JSON.stringify(request),
   });
   if (data.some((line) => typeof line !== 'string' || !line.trim())) {
-    throw new ApiError('The server returned an invalid proxy list. Try again.');
+    throw new ApiError(apiErrorMessage.network.invalidProxyList);
   }
   return data as readonly string[];
 }

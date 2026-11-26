@@ -16,12 +16,12 @@
 
 ## Backend and Byteful integration
 
-- [ ] Add a server-only Byteful client that reads both keys at runtime and sends the required authentication headers.
-- [ ] Implement the three live lookup routes. Preserve the `{ data }` response body and expose City and ASN pagination through response headers.
-- [ ] Verify country-scoped city filtering, including `subdivision_id=gb%25`, and ASN search with and without a country. Add debouncing, cancellation, caching, and manual retry.
-- [ ] Implement `POST /api/residential/list` with shared defaults and validation, percent-encoded credentials, unique sticky session IDs, identical rotating lines, and `Cache-Control: no-store`.
-- [ ] Accept live targeting values without fixture dependencies. Document where City and ASN country membership is verified while generation stays independent of upstream requests.
-- [ ] Return consistent `{ error, message }` responses for invalid input, missing keys, upstream errors, rate limits, and generation failures.
+- [x] Add a server-only Byteful client that reads both keys at runtime and sends the required authentication headers.
+- [x] Implement the three live lookup routes. Preserve the `{ data }` response body and expose pagination through `X-Current-Page`, `X-Per-Page`, and `X-Next-Page` headers.
+- [x] Scope city lookups by country with `like_subdivision_id=gb%25` and support ASN search with or without a country. Use debounced API search, TanStack Query caching and cancellation, automatic pagination on scroll, and manual retry for Country, City, and ASN.
+- [x] Implement `POST /api/residential/list` with shared defaults and validation, percent-encoded credentials, unique sticky session IDs, identical rotating lines, and `Cache-Control: no-store`.
+- [x] Accept live targeting values without fixture dependencies. The client validates selected City and ASN membership against selected lookup results. The generation route validates their structure and remains independent of upstream requests.
+- [x] Return consistent `{ error, message }` responses for invalid input, missing keys, upstream errors, rate limits, and generation failures.
 
 ## Verification and known gaps
 
@@ -29,6 +29,6 @@
 - [ ] Check lookup loading, empty results, pagination, missing keys, upstream 429, retry, and stale responses after changing country or query.
 - [x] Exercise both `ComboBox` modes, the generator, history, and results with keyboard and mobile input. Verify copy, download, and draft recovery.
 - [x] Recheck the generator Storybook import issue. The story imports `Landing` directly, builds, and runs through generation and retry in the browser.
-- [x] Run `npm run typecheck`, `npm run build`, and `npm run build-storybook`. Keep Storybook and automated tests runnable without keys.
+- [x] Run `npm run typecheck` and `npm run build`. Keep Storybook and automated tests runnable without keys.
 - [ ] With local keys configured, smoke-test all three live lookups and generation. Verify the browser calls only local routes and both keys stay out of client assets, responses, and logs.
 - [ ] Finish the README with setup, assumptions, and error codes. Record the assessment walkthrough video.

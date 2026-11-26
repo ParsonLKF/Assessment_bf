@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { ComboBox } from './combo-box';
+import { apiErrorMessage } from '@/lib/api-errors';
 
 const options = [
   { value: 'http', label: 'HTTP' },
@@ -37,4 +38,4 @@ type Story = StoryObj<typeof meta>;
 export const Dropdown: Story = { args: { type: 'dropdown' } };
 export const Searchable: Story = { args: { type: 'searchable' } };
 export const Disabled: Story = { args: { type: 'searchable', disabled: true } };
-export const LookupError: Story = { args: { type: 'searchable', lookupError: 'Could not load options.' } };
+export const LookupError: Story = { args: { type: 'searchable', lookupError: apiErrorMessage.network.lookupFailed } };

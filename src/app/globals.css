@@ -127,8 +127,10 @@
   .combo-actions .icon-glyph { width: 14px; height: 14px; }
   .combo-popup { position: absolute; z-index: 2; inset: calc(100% + 5px) 0 auto; padding: 4px; border: 1px solid var(--line, #e1e4ec); border-radius: 9px; background: var(--paper, #fff); box-shadow: 0 8px 24px #17203622; }
   .combo-popup ul { max-height: 215px; overflow: auto; overscroll-behavior: contain; }
-  .combo-popup li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border-radius: 6px; overflow-wrap: anywhere; cursor: pointer; }
-  .combo-popup li:hover, .combo-popup li[data-active] { background: var(--accent-soft, #efedff); color: var(--accent-text, #4d3fce); }
+  .combo-popup [role="option"] { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border-radius: 6px; overflow-wrap: anywhere; cursor: pointer; }
+  .combo-popup [role="option"]:hover, .combo-popup [role="option"][data-active] { background: var(--accent-soft, #efedff); color: var(--accent-text, #4d3fce); }
+  .combo-pagination { min-height: 1px; }
+  .combo-pagination .combo-message { display: block; }
   .combo-message, .lookup-message { padding: 8px; color: var(--muted, #636878); font-size: 12px; }
   .lookup-message { margin-top: 6px; border-radius: 6px; background: var(--danger-bg, #fff0ef); color: var(--danger, #a52f32); }
   .text-button { font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }

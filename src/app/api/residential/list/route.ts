@@ -1,5 +1,4 @@
-import { apiErrorResponse } from '@/lib/api-errors';
-import { asns, cities } from '@/lib/lookup-fixtures';
+import { apiErrorMessage, apiErrorResponse } from '@/lib/api-errors';
 import { buildProxyUrls } from '@/lib/proxy-builder';
 import { validateListRequest } from '@/lib/validators';
 
@@ -8,13 +7,13 @@ export async function POST(request: Request) {
   try {
     input = await request.json();
   } catch {
-    return apiErrorResponse('invalid_parameter', 'Send a valid JSON request body.');
+    return apiErrorResponse('invalid_parameter', apiErrorMessage.request.invalidJson);
   }
 
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
-    return apiErrorResponse('invalid_parameter', 'Send a JSON object with the list settings.');
+    return apiErrorResponse('invalid_parameter', apiErrorMessage.request.invalidObject);
   }
-  const validation = validateListRequest(input, { cities, asns });
+  const validation = validateListRequest(input);
   if (!validation.ok) {
     const { proxy_user_id, proxy_user_password } = validation.errors;
     const fields = input as Record<string, unknown>;
@@ -24,7 +23,7 @@ export async function POST(request: Request) {
     if (proxy_user_password && (typeof fields.proxy_user_password !== 'string' || !fields.proxy_user_password.trim())) {
       return apiErrorResponse('missing_credentials', proxy_user_password);
     }
-    return apiErrorResponse('invalid_parameter', Object.values(validation.errors)[0] ?? 'Check the list settings.');
+    return apiErrorResponse('invalid_parameter', Object.values(validation.errors)[0] ?? apiErrorMessage.request.invalidSettings);
   }
 
   try {
@@ -32,6 +31,6 @@ export async function POST(request: Request) {
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch {
-    return apiErrorResponse('internal_server_error', 'Could not generate the proxy list. Try again.');
+    return apiErrorResponse('internal_server_error', apiErrorMessage.generation.failed);
   }
 }

@@ -30,7 +30,7 @@ The Next.js App Router serves a client-side React console and four local API rou
 
 ## Requests and validation
 
-Targeting data is fetched through `useLookup`. Country search filters the loaded catalog. City and ASN search use a 300 ms debounce when a search term is present. Changing the country clears the city selection and search, and clears an ASN that no longer belongs to the selected country. A selected option stays visible while a search excludes it. Each lookup cache is keyed by full request path and lasts for the mounted console. Successful responses are cached. Obsolete requests are aborted. Retry is manual.
+Country, City, and ASN use the same TanStack Query lookup hook. A search term is sent to the server after a 300 ms debounce. The dropdown requests the next page when its last row comes within 64 px of the visible list. Changing the country clears the city selection and search, and clears an ASN that no longer belongs to the selected country. A selected option stays visible while a search excludes it. Each lookup cache is keyed by resource, country scope, and search term. Obsolete requests are aborted when the query key changes. The dropdown offers a Retry button if a lookup fails.
 
 The browser and generation route use the same validator. The browser supplies its selected city and ASN records. The route supplies the full fixture catalogs. The route catches malformed JSON separately and returns the structured generation failure for an exception during URL assembly or success response serialization.
 

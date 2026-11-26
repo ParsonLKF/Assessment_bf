@@ -1,22 +1,42 @@
-import { apiErrorResponse } from '@/lib/api-errors';
-import { countries, fixtureAsns, fixtureCities } from '@/lib/lookup-fixtures';
+import { apiErrorMessage, apiErrorResponse } from '@/lib/api-errors';
+import { bytefulErrorResponse, lookupResponse, searchByteful } from '@/lib/byteful-api-client';
+
+const lookupResources = { countries: 'country', cities: 'city', asns: 'asn' } as const;
+type ResourceName = keyof typeof lookupResources;
 
 export async function GET(request: Request, context: { params: Promise<{ resource: string }> }) {
   const { resource } = await context.params;
-  const query = new URL(request.url).searchParams;
-  const country = query.get('country_id') ?? '';
-  const term = query.get('q') ?? '';
+  if (!(resource in lookupResources)) return apiErrorResponse('not_found', apiErrorMessage.request.unknownLookup);
+  const name = resource as ResourceName;
+  const params = new URL(request.url).searchParams;
+  const countryId = params.get('country_id')?.trim().toLowerCase();
+  const query = params.get('q')?.trim();
+  const page = Number(params.get('page') ?? '1');
 
-  switch (resource) {
-    case 'countries':
-      return Response.json({ data: countries });
-    case 'cities':
-      if (!/^[a-z]{2}$/.test(country)) return apiErrorResponse('invalid_parameter', 'Choose a country before searching for cities.');
-      return Response.json({ data: fixtureCities(country, term) });
-    case 'asns':
-      if (country && !/^[a-z]{2}$/.test(country)) return apiErrorResponse('invalid_parameter', 'Use a lowercase two-letter country code.');
-      return Response.json({ data: fixtureAsns(country, term) });
-    default:
-      return apiErrorResponse('not_found', 'This lookup does not exist.');
+  console.info('[lookup-route] request', {
+    resource: name,
+    countryId: countryId ?? undefined,
+    query: query || undefined,
+    page,
+  });
+
+  if (name !== 'countries' && countryId && !/^[a-z]{2}$/.test(countryId)) {
+    return apiErrorResponse('invalid_parameter', apiErrorMessage.request.invalidCountry);
+  }
+  if (name === 'cities' && !countryId) return apiErrorResponse('invalid_parameter', apiErrorMessage.request.countryRequired);
+  if (params.has('q') && (!query || query.length > 80)) return apiErrorResponse('invalid_parameter', apiErrorMessage.request.invalidSearch);
+  if (!Number.isSafeInteger(page) || page < 1) return apiErrorResponse('invalid_parameter', apiErrorMessage.request.invalidPage);
+
+  try {
+    const result = await searchByteful(lookupResources[name], { countryId, query: query || undefined, page }, request.signal);
+    return lookupResponse(result);
+  } catch (error) {
+    console.error('[lookup-route] failed', {
+      resource: name,
+      countryId: countryId ?? undefined,
+      page,
+      error: error instanceof Error ? error.message : apiErrorMessage.lookup.failed,
+    });
+    return bytefulErrorResponse(error);
   }
 }

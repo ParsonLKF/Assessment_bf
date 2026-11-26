@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { rotationLabel } from '@/lib/list-rules';
+import { apiErrorMessage } from '@/lib/api-errors';
 import type { ProxySnapshot } from './types';
 
 export function ProxyResult({ result, onBack }: { result: ProxySnapshot; onBack: () => void }) {
@@ -19,7 +20,7 @@ export function ProxyResult({ result, onBack }: { result: ProxySnapshot; onBack:
       await navigator.clipboard.writeText(text);
       announce(message);
     } catch {
-      announce('Could not copy to the clipboard. You can select and copy the proxy text manually.', true);
+      announce(apiErrorMessage.clipboard.failed, true);
     }
   }
 

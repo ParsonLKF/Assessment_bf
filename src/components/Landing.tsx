@@ -9,6 +9,7 @@ import { ProxyResult } from './generator/proxy-result';
 import type { ProxySnapshot, View } from './generator/types';
 import { useGeneratorDraft } from './generator/use-generator-draft';
 import { useTargetingLookups } from './generator/use-targeting-lookups';
+import { apiErrorMessage } from '@/lib/api-errors';
 
 export function Landing() {
   const [view, setView] = useState<View>('generator');
@@ -36,7 +37,7 @@ export function Landing() {
     if (submitting.current) return;
     const validation = form.request();
     if (!validation.ok) {
-      setSubmitError(Object.values(validation.errors)[0] ?? 'Check your settings and try again.');
+      setSubmitError(Object.values(validation.errors)[0] ?? apiErrorMessage.request.invalidSettings);
       return;
     }
     submitting.current = true;
@@ -46,7 +47,7 @@ export function Landing() {
     try {
       const lines = await generateList(validation.value);
       if (lines.length === 0) {
-        setSubmitError('The server returned an empty proxy list. Try again.');
+        setSubmitError(apiErrorMessage.generation.empty);
         return;
       }
       const trimmedName = draft.name.trim();
@@ -68,7 +69,7 @@ export function Landing() {
       lookups.resetQueries();
       setView('result');
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Could not generate the proxy list. Try again.');
+      setSubmitError(error instanceof Error ? error.message : apiErrorMessage.generation.failed);
     } finally {
       submitting.current = false;
       setPending(false);

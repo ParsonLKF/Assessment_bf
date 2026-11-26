@@ -45,12 +45,14 @@ export function TargetingStep({ form: { draft, errors, update }, lookups }: { fo
       <ComboBox type="searchable" label="Country" value={draft.country?.country_id ?? null} onChange={countries.select}
         options={countries.data.map((country) => ({ value: country.country_id, label: country.country_name }))}
         placeholder="Any country" searchPlaceholder="Search countries" query={countries.query} onQueryChange={countries.setQuery}
-        loading={countries.loading} lookupError={countries.error} onRetry={countries.retry} error={errors.country_id} />
+        loading={countries.loading} hasMore={countries.hasMore} loadingMore={countries.loadingMore} onLoadMore={countries.loadMore}
+        lookupError={countries.error} onRetry={countries.retry} error={errors.country_id} />
       <ComboBox type="searchable" label="City" value={draft.city?.city_alias ?? null} onChange={cities.select}
         options={cities.data.map((city) => ({ value: city.city_alias, label: city.city_name }))}
         placeholder="Any city" searchPlaceholder="Search cities" query={cities.query} onQueryChange={cities.setQuery}
         disabled={!draft.country} help={!draft.country ? 'Select a country to search cities.' : undefined}
-        loading={cities.loading} lookupError={cities.error} onRetry={cities.retry} error={errors.city_alias} />
+        loading={cities.loading} hasMore={cities.hasMore} loadingMore={cities.loadingMore} onLoadMore={cities.loadMore}
+        lookupError={cities.error} onRetry={cities.retry} error={errors.city_alias} />
       <TextField label="Quantity" value={draft.count} onChange={(value) => update('count', value, 'list_count')}
         inputMode="numeric" help="1 to 1,000 proxy URLs." error={errors.list_count} />
       <ComboBox type="dropdown" label="Rotation" options={rotationOptions} value={draft.rotation}
@@ -59,7 +61,8 @@ export function TargetingStep({ form: { draft, errors, update }, lookups }: { fo
         <ComboBox type="searchable" label="ASN" value={draft.asn ? String(draft.asn.asn_id) : null} onChange={asns.select}
           options={asns.data.map((asn) => ({ value: String(asn.asn_id), label: `${asn.asn_name} (${asn.asn_id})` }))}
           placeholder="Any ASN" searchPlaceholder="Search by provider name or ASN ID" query={asns.query} onQueryChange={asns.setQuery}
-          loading={asns.loading} lookupError={asns.error} onRetry={asns.retry} error={errors.asn_id} />
+          loading={asns.loading} hasMore={asns.hasMore} loadingMore={asns.loadingMore} onLoadMore={asns.loadMore}
+          lookupError={asns.error} onRetry={asns.retry} error={errors.asn_id} />
       </div>
     </div>
   );

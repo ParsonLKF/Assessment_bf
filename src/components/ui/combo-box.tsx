@@ -22,6 +22,9 @@ type Searchable<Value extends string> = Common<Value> & {
   onQueryChange: (query: string) => void;
   searchPlaceholder?: string;
   loading?: boolean;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
   lookupError?: string;
   onRetry?: () => void;
 };
@@ -49,15 +52,29 @@ export function ComboBox<Value extends string>(props: ComboBoxProps<Value>) {
 }
 
 function SearchBox<Value extends string>({ control, label, options, value, onChange, query, onQueryChange, placeholder,
-  searchPlaceholder, disabled, required, loading, lookupError, onRetry }: Searchable<Value> & { control: ControlProps }) {
+  searchPlaceholder, disabled, required, loading, hasMore, loadingMore, onLoadMore, lookupError, onRetry }: Searchable<Value> & { control: ControlProps }) {
   const [open, setOpen] = useState(false);
   const [activeValue, setActiveValue] = useState<Value | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const listbox = useRef<HTMLUListElement>(null);
+  const paginationRow = useRef<HTMLLIElement>(null);
   const listId = `${control.id}-options`;
   const activeIndex = options.findIndex((option) => option.value === activeValue);
   const visible = open && !disabled;
   const activeId = visible && activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined;
   const selected = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    const root = listbox.current;
+    const row = paginationRow.current;
+    if (!visible || !root || !row || !hasMore || loading || loadingMore || lookupError || !onLoadMore) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) onLoadMore();
+    }, { root, rootMargin: '0px 0px 64px 0px' });
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [visible, hasMore, loading, loadingMore, lookupError, onLoadMore]);
 
   useEffect(() => {
     if (activeId) document.getElementById(activeId)?.scrollIntoView({ block: 'nearest' });
@@ -151,7 +168,7 @@ function SearchBox<Value extends string>({ control, label, options, value, onCha
         </div>
         {visible && (
           <div className="combo-popup">
-            <ul id={listId} role="listbox" aria-label={`${label} options`} aria-busy={loading}>
+            <ul ref={listbox} id={listId} role="listbox" aria-label={`${label} options`} aria-busy={loading || loadingMore}>
               {options.map((option, index) => (
                 <li key={option.value} id={`${listId}-${index}`} role="option" aria-selected={option.value === value}
                   data-active={index === activeIndex || undefined} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(option)}>
@@ -159,6 +176,11 @@ function SearchBox<Value extends string>({ control, label, options, value, onCha
                   {option.value === value && <Icon name="check" />}
                 </li>
               ))}
+              {hasMore && (
+                <li ref={paginationRow} className="combo-pagination" role="presentation" aria-hidden={!loadingMore}>
+                  {loadingMore && <span className="combo-message" role="status">Loading more options…</span>}
+                </li>
+              )}
             </ul>
             {loading && <p className="combo-message" role="status">Loading options…</p>}
             {!loading && !lookupError && options.length === 0 && <p className="combo-message" role="status">No matching options.</p>}
