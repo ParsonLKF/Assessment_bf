@@ -1,6 +1,6 @@
 # Technical Architecture and System Design
 
-The Next.js App Router serves a client-side React console and four local API routes. The browser calls only the app's API. The console and its styles follow the supplied [design prototype](../interview-takehome-full-stack/design/index.html).
+The Next.js App Router serves a client-side React console and four local API endpoints. Three lookup endpoints share one dynamic route handler. The browser calls only the app's API. The console and its styles follow the supplied [design prototype](../interview-takehome-full-stack/design/index.html).
 
 ## Source map
 
@@ -12,12 +12,13 @@ The Next.js App Router serves a client-side React console and four local API rou
 | `src/components/generator/proxy-generator.tsx` and `generator-steps.tsx` | Render setup progress, form actions, credentials, targeting, and the single settings summary in Review. |
 | `src/components/generator/proxy-list.tsx` and `proxy-list-table.tsx` | Render the submitted-list screen and activate a selected row. |
 | `src/components/generator/proxy-result.tsx` and `types.ts` | Render list details and manage copy/download feedback. Types describe views, steps, and generated snapshots. |
-| `src/components/generator/use-generator-draft.ts` and `use-targeting-lookups.ts` | Manage draft defaults, selections, lookup query paths, and client-side validation. |
+| `src/components/generator/use-generator-draft.ts` | Manages draft defaults, selections, and form validation. |
+| `src/components/generator/use-targeting-lookups.ts` and `src/components/query-provider.tsx` | Fetch and cache lookup pages, debounce search, cancel obsolete requests, and handle retry. |
 | `src/components/ui/` | Reusable Card, Step Progress, Field, Text Field, Password Toggle, and ComboBox. Country, City, and ASN are searchable. Protocol and Rotation use native dropdowns. |
-| `src/components/use-lookup.ts` | Stores successful lookup responses by path, debounces, cancels obsolete requests, and exposes retry. |
-| `src/lib/api-client.ts` | Fetches array results from local routes and preserves server error codes, messages, and statuses. |
-| `src/lib/list-rules.ts`, `validators.ts`, and `api-errors.ts` | Hold shared defaults and options, input and fixture-membership checks, and the error catalog. |
-| `src/lib/lookup-fixtures.ts`, `proxy-builder.ts`, and `byteful-api-client.ts` | Provide local lookup data, generate URLs, and prepare optional server-only Byteful auth headers. |
+| `src/lib/api-client.ts` | Sends generation requests to the local API and preserves the HTTP status and error message on failure. |
+| `src/lib/list-rules.ts`, `validators.ts`, `country-codes.ts`, and `api-errors.ts` | Hold shared defaults and options, input and ISO country validation, and the error catalog. |
+| `src/lib/proxy-builder.ts` and `src/lib/byteful-api-client.ts` | Generate proxy URLs locally and fetch live lookups with server-side Byteful credentials, respectively. |
+| `src/lib/lookup-fixtures.ts` and `tests/` | Provide Storybook lookup fixtures and backend checks that use mock upstream responses. |
 | `.storybook/` and colocated `*.stories.tsx` | Configure the Next.js Vite catalog and exercise the components and screen with local mocks. |
 
 ## Console interaction
@@ -30,9 +31,9 @@ The Next.js App Router serves a client-side React console and four local API rou
 
 ## Requests and validation
 
-Country, City, and ASN use the same TanStack Query lookup hook. A search term is sent to the server after a 300 ms debounce. The dropdown requests the next page when its last row comes within 64 px of the visible list. Changing the country clears the city selection and search, and clears an ASN that no longer belongs to the selected country. A selected option stays visible while a search excludes it. Each lookup cache is keyed by resource, country scope, and search term. Obsolete requests are aborted when the query key changes. The dropdown offers a Retry button if a lookup fails.
+Country, City, and ASN use the same TanStack Query lookup hook. A search term is sent to the server after a 300 ms debounce. The dropdown requests the next page when its last row comes within 64 px of the visible list. Changing the country clears the city selection and the City and ASN search terms, and clears an ASN that no longer belongs to the selected country. A selected option stays visible while a search excludes it. The cache is keyed by resource, country scope, and search term. Data stays fresh for 60 seconds, and inactive queries are retained for 10 minutes. The hook passes TanStack Query's abort signal to fetch. It allows up to two automatic retries for network errors, server errors, and HTTP 429. The dropdown's manual Retry button refetches the lookup.
 
-The browser and generation route use the same validator. The browser supplies its selected city and ASN records. The route supplies the full fixture catalogs. The route catches malformed JSON separately and returns the structured generation failure for an exception during URL assembly or success response serialization.
+The browser and generation route use the same validator. It rejects whitespace in credentials, checks supplied country codes against assigned lowercase ISO codes, requires a country for a city alias, and accepts safe integers for ASN IDs. Lookup results scope the choices in the UI. The generation route validates submitted values locally without checking membership against a catalog. It returns a structured validation error for malformed JSON and a structured generation error for exceptions during URL assembly or response serialization.
 
 The error catalog uses string codes typed with `type ApiErrorCode = keyof typeof statusByCode`. The `as const` status lookup maps `missing_credentials` and `invalid_parameter` to HTTP 400 and `internal_server_error` to HTTP 500. `apiErrorResponse` serializes only `error` and `message`. The network client requires an array in `data` on success and distinguishes HTTP, transport, and response-format failures. [API routes and examples](readme.md#local-api)
 
@@ -45,15 +46,9 @@ The error catalog uses string codes typed with `type ApiErrorCode = keyof typeof
 
 The builder percent-encodes the assembled username and password. For sticky sessions, it appends a random 16-character uppercase alphanumeric session ID to the username and enforces uniqueness within the list. Rotating lists omit the session suffix and repeat the same line. The generation endpoint adds `Cache-Control: no-store` on success.
 
-## Current fixture baseline
-
-The country fixtures are Canada, Germany, United Kingdom, and United States. The city fixtures are Berlin, London, Manchester, New York, Norwich, San Francisco, Toronto, and Vancouver, with their respective country codes. The ASN fixtures are Comcast 7922, Deutsche Telekom 3320, Rogers 812, and Virgin Media 5089. Their exact values and order are in `src/lib/lookup-fixtures.ts`.
-
-The server-only helper trims `BYTEFUL_PUBLIC_KEY` and `BYTEFUL_PRIVATE_KEY` and prepares `X-API-Public-Key` and `X-API-Private-Key` when both are present. Current routes make zero upstream requests.
-
 ## Byteful lookups
 
-The browser will keep calling the Next.js routes. The Next.js server will require both keys and send them as authentication headers to `https://api.byteful.com/1.0/`. The route adapters will normalize upstream payloads to the existing `{ data }` response shape, with safe error messages for missing configuration, upstream errors, and rate limits. [Full-stack assessment](../interview-takehome-full-stack/README.md)
+The browser calls the Next.js routes. The server-only Byteful client reads and trims `BYTEFUL_PUBLIC_KEY` and `BYTEFUL_PRIVATE_KEY` and sends them as `X-API-Public-Key` and `X-API-Private-Key` to `https://api.byteful.com/1.0/`. The lookup handler normalizes upstream payloads to `{ data }` and returns structured errors for missing configuration, upstream failures, and rate limits. [Full-stack assessment](../interview-takehome-full-stack/README.md)
 
 | App route | Byteful route |
 |---|---|
@@ -61,7 +56,7 @@ The browser will keep calling the Next.js routes. The Next.js server will requir
 | `GET /api/lookup/cities` | `GET /public/user/city/search` |
 | `GET /api/lookup/asns` | `GET /public/user/asn/search` |
 
-- Translate city `country_id` to the upstream `subdivision_id` wildcard filter. For `gb`, pass `gb%` as the query value and let URL encoding produce `subdivision_id=gb%25`. Keep the app's optional city search query and the ASN country filter.
-- Keep the browser's debounce, successful-response cache, cancellation, and manual retry. Account for the assessment's default limit of 20 requests per second and HTTP 429 responses when designing the server lookups.
-- Update generation validation so valid city and ASN values from Byteful pass without relying on the fixture catalog. Keep `POST /api/residential/list` independent of upstream requests and build its output locally.
-- Keep fixture data in Storybook and automated tests so they run without keys or upstream availability.
+- City lookup converts the local `country_id=gb` to Byteful's `like_subdivision_id=gb%25`. ASN lookup passes `country_id` when supplied.
+- Name searches use the resource's `like_*_name` filter and wrap the search term in wildcards. URL encoding turns the wildcards into `%25`. A numeric ASN search matches `asn_id` exactly.
+- The server asks Byteful for 100 records per page. The local lookup response includes `X-Current-Page` and `X-Per-Page` on success, plus `X-Next-Page` when another page is available. The route forwards `Retry-After` when Byteful includes it in an HTTP 429 response. Client handling of that header is listed under [Future work](readme.md#future-work).
+- Storybook and backend tests use local fixtures or mock responses and run without Byteful keys. `POST /api/residential/list` builds its output locally.

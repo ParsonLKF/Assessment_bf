@@ -81,8 +81,8 @@ npm run build
 npm run build-storybook
 ```
 
-See the [verification checklist](tasks.md#verification-and-known-gaps) for the
-checks run and any remaining gaps.
+Backend tests and Storybook use mock responses and can run without API keys.
+See [Future work](#future-work) for the remaining gaps.
 
 ## Future work
 
